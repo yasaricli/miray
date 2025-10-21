@@ -29,5 +29,6 @@
   "homepage": "https://github.com/yasaricli/miray/tree/main/packages/common#readme",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "gitHead": "4489ff448026f718ae1e65990f6eb872e838eb95"
 }
