@@ -55,7 +55,7 @@ npm install
 npm run server
 
 # Or with custom port
-node packages/server/src/index.js --port 6379
+node packages/server/src/index.js --port 7779
 ```
 
 ### Using the CLI
@@ -91,7 +91,7 @@ import MirayClient from 'miray-client';
 
 const client = new MirayClient({
   host: 'localhost',
-  port: 6379
+  port: 7779
 });
 
 await client.connect();
@@ -236,7 +236,7 @@ Edit `packages/common/src/config.js`:
 export const config = {
   server: {
     host: '0.0.0.0',
-    port: 6379,
+    port: 7779,
   },
   storage: {
     walFile: './data/miray.wal',

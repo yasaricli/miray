@@ -6,7 +6,7 @@ import MirayClient from 'miray-client';
 
 class Benchmark {
   constructor() {
-    this.client = new MirayClient({ host: 'localhost', port: 6379 });
+    this.client = new MirayClient({ host: 'localhost', port: 7779 });
   }
 
   async run() {

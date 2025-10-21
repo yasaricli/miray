@@ -33,14 +33,14 @@ npx miray
 ### Connect to Server
 
 ```bash
-# Default (localhost:6379)
+# Default (localhost:7779)
 miray
 
 # Custom host and port
-miray --host localhost --port 6379
+miray --host localhost --port 7779
 
 # Short flags
-miray -h localhost -p 6379
+miray -h localhost -p 7779
 ```
 
 ### Interactive Session
@@ -48,7 +48,7 @@ miray -h localhost -p 6379
 ```bash
 $ miray
 MIRAY CLI - Memory In-memory Real-time Async Yield
-Connecting to localhost:6379...
+Connecting to localhost:7779...
 Connected!
 
 > PING
@@ -171,7 +171,7 @@ OK
 ## Options
 
 - `--host`, `-h`: Server host (default: `localhost`)
-- `--port`, `-p`: Server port (default: `6379`)
+- `--port`, `-p`: Server port (default: `7779`)
 
 ## Exit
 

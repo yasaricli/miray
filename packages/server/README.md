@@ -33,20 +33,20 @@ npx miray-server
 ### Start Server
 
 ```bash
-# Default (localhost:6379)
+# Default (localhost:7779)
 miray-server
 
 # Custom host and port
-miray-server --host 0.0.0.0 --port 6379
+miray-server --host 0.0.0.0 --port 7779
 
 # Short flags
-miray-server -h 0.0.0.0 -p 6379
+miray-server -h 0.0.0.0 -p 7779
 ```
 
 ### Options
 
 - `--host`, `-h`: Host address (default: `0.0.0.0`)
-- `--port`, `-p`: Port number (default: `6379`)
+- `--port`, `-p`: Port number (default: `7779`)
 
 ## Features
 
@@ -65,7 +65,7 @@ $ miray-server
 [Storage] Initializing with WAL + Binary format...
 [WAL] Initialized at ./data/miray.wal
 [Storage] Ready with 0 keys
-[Server] MIRAY listening on 0.0.0.0:6379
+[Server] MIRAY listening on 0.0.0.0:7779
 ```
 
 ## Configuration
@@ -76,7 +76,7 @@ The server uses configuration from `miray-common` package. Default settings:
 {
   server: {
     host: '0.0.0.0',
-    port: 6379,
+    port: 7779,
   },
   storage: {
     walFile: './data/miray.wal',
@@ -109,7 +109,7 @@ Connect to the server using:
 
 - **CLI**: `npm install -g miray-cli` then run `miray`
 - **Node.js SDK**: `npm install miray-client`
-- **TCP**: Any TCP client on port 6379
+- **TCP**: Any TCP client on port 7779
 
 ## Commands
 

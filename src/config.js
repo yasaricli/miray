@@ -1,7 +1,7 @@
 export const config = {
   server: {
     host: '0.0.0.0',
-    port: 6379,
+    port: 7779,
   },
   storage: {
     // Binary + WAL system

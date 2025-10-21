@@ -15,7 +15,7 @@ import MirayClient from 'miray-client';
 
 const client = new MirayClient({
   host: 'localhost',
-  port: 6379
+  port: 7779
 });
 
 // Connect to server
@@ -42,7 +42,7 @@ new MirayClient(options)
 
 **Options:**
 - `host` (string): Server host (default: `'localhost'`)
-- `port` (number): Server port (default: `6379`)
+- `port` (number): Server port (default: `7779`)
 
 ### Methods
 
