@@ -48,6 +48,16 @@ export class Protocol {
         case 'INFO':
           return this.handleInfo();
 
+        // Batch operations for performance
+        case 'MGET':
+          return this.handleMGet(parts);
+
+        case 'MSET':
+          return await this.handleMSet(parts);
+
+        case 'MDEL':
+          return await this.handleMDel(parts);
+
         default:
           return `-ERR unknown command '${command}'\n`;
       }
@@ -225,5 +235,88 @@ export class Protocol {
     }
 
     return response;
+  }
+
+  /**
+   * MGET - Get multiple values at once
+   * Usage: MGET key1 key2 key3 ...
+   * Returns array of values
+   */
+  handleMGet(parts) {
+    if (parts.length < 2) {
+      return '-ERR wrong number of arguments for MGET\n';
+    }
+
+    const keys = parts.slice(1);
+    const values = keys.map((key) => this.storage.get(key));
+
+    // Return as array
+    let response = `*${values.length}\n`;
+    for (const value of values) {
+      if (value === null) {
+        response += '$-1\n';
+      } else {
+        response += `$${value}\n`;
+      }
+    }
+
+    return response;
+  }
+
+  /**
+   * MSET - Set multiple key-value pairs at once
+   * Usage: MSET key1 value1 [ttl1] key2 value2 [ttl2] ...
+   * Returns OK
+   */
+  async handleMSet(parts) {
+    if (parts.length < 3) {
+      return '-ERR wrong number of arguments for MSET\n';
+    }
+
+    const args = parts.slice(1);
+    let i = 0;
+
+    while (i < args.length) {
+      const key = args[i];
+      const value = args[i + 1];
+
+      if (!key || value === undefined) {
+        return '-ERR wrong number of arguments for MSET\n';
+      }
+
+      // Check if next arg is TTL (starts with number and ends with time unit)
+      let ttl = null;
+      if (args[i + 2] && /^\d+[smh]$/.test(args[i + 2])) {
+        ttl = this.parseTTL(args[i + 2]);
+        i += 3;
+      } else {
+        i += 2;
+      }
+
+      await this.storage.set(key, value, ttl);
+    }
+
+    return '+OK\n';
+  }
+
+  /**
+   * MDEL - Delete multiple keys at once
+   * Usage: MDEL key1 key2 key3 ...
+   * Returns number of keys deleted
+   */
+  async handleMDel(parts) {
+    if (parts.length < 2) {
+      return '-ERR wrong number of arguments for MDEL\n';
+    }
+
+    const keys = parts.slice(1);
+    let deletedCount = 0;
+
+    for (const key of keys) {
+      const deleted = await this.storage.delete(key);
+      if (deleted) deletedCount++;
+    }
+
+    return `:${deletedCount}\n`;
   }
 }

@@ -67,6 +67,12 @@ class MirayServer {
   handleConnection(socket) {
     const clientId = `${socket.remoteAddress}:${socket.remotePort}`;
 
+    // Disable Nagle's algorithm for lower latency
+    socket.setNoDelay(true);
+
+    // Enable TCP keep-alive
+    socket.setKeepAlive(true, 60000);
+
     // Update connection stats
     this.stats.totalConnections++;
     this.stats.activeConnections++;

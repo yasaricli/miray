@@ -27,6 +27,12 @@ export class MirayClient extends EventEmitter {
       this.socket = net.createConnection(
         { host: this.host, port: this.port },
         async () => {
+          // Disable Nagle's algorithm for lower latency
+          this.socket.setNoDelay(true);
+
+          // Enable TCP keep-alive
+          this.socket.setKeepAlive(true, 60000);
+
           this.connected = true;
           this.emit('connect');
           console.log(`[Client] Connected to ${this.host}:${this.port}`);
@@ -97,13 +103,36 @@ export class MirayClient extends EventEmitter {
   handleData(data) {
     this.buffer += data.toString();
 
-    // Process complete responses
-    let newlineIndex;
-    while ((newlineIndex = this.buffer.indexOf('\n')) !== -1) {
-      const line = this.buffer.slice(0, newlineIndex);
-      this.buffer = this.buffer.slice(newlineIndex + 1);
+    // Try to parse complete responses
+    while (this.buffer.length > 0 && this.commandQueue.length > 0) {
+      const firstChar = this.buffer[0];
 
-      if (this.commandQueue.length > 0) {
+      // For array responses, we need to collect multiple lines
+      if (firstChar === '*') {
+        const firstNewline = this.buffer.indexOf('\n');
+        if (firstNewline === -1) break; // Wait for complete line
+
+        const countLine = this.buffer.slice(0, firstNewline);
+        const count = parseInt(countLine.slice(1), 10);
+
+        // We need count+1 lines total (header + count items)
+        const lines = this.buffer.split('\n');
+        if (lines.length < count + 1) break; // Wait for all lines
+
+        // Extract the complete array response
+        const response = lines.slice(0, count + 1).join('\n');
+        this.buffer = this.buffer.slice(response.length + 1);
+
+        const { resolve } = this.commandQueue.shift();
+        resolve(response);
+      } else {
+        // Single line response
+        const newlineIndex = this.buffer.indexOf('\n');
+        if (newlineIndex === -1) break; // Wait for complete line
+
+        const line = this.buffer.slice(0, newlineIndex);
+        this.buffer = this.buffer.slice(newlineIndex + 1);
+
         const { resolve } = this.commandQueue.shift();
         resolve(this.parseResponse(line));
       }
@@ -322,6 +351,135 @@ export class MirayClient extends EventEmitter {
   async info() {
     const command = `INFO`;
     return await this.sendCommand(command);
+  }
+
+  /**
+   * MGET - Get multiple values at once (batch operation)
+   * @param {string[]} keys - Array of keys to retrieve
+   * @returns {Promise<Array>} - Array of values (null for missing keys)
+   */
+  async mget(keys) {
+    if (!Array.isArray(keys) || keys.length === 0) {
+      throw new Error('keys must be a non-empty array');
+    }
+
+    return new Promise((resolve, reject) => {
+      if (!this.connected) {
+        return reject(new Error('Not connected to server'));
+      }
+
+      const command = `MGET ${keys.join(' ')}`;
+
+      this.commandQueue.push({
+        resolve: (rawResponse) => {
+          // Parse array response manually
+          if (typeof rawResponse === 'string' && rawResponse.startsWith('*')) {
+            const lines = rawResponse.split('\n').filter((l) => l.trim());
+            const count = parseInt(lines[0].slice(1), 10);
+            const values = [];
+
+            for (let i = 1; i <= count; i++) {
+              const line = lines[i];
+              if (line === '$-1') {
+                values.push(null);
+              } else if (line.startsWith('$')) {
+                values.push(line.slice(1));
+              }
+            }
+
+            resolve(values);
+          } else {
+            resolve(rawResponse);
+          }
+        },
+        reject,
+      });
+
+      this.socket.write(command + '\n');
+    });
+  }
+
+  /**
+   * MSET - Set multiple key-value pairs at once (batch operation)
+   * @param {Object} pairs - Object with key-value pairs, or array of [key, value, ttl?]
+   * @returns {Promise<string>} - OK on success
+   */
+  async mset(pairs) {
+    let command = 'MSET';
+
+    if (Array.isArray(pairs)) {
+      // Format: [[key1, value1, ttl1], [key2, value2], ...]
+      for (const item of pairs) {
+        const [key, value, ttl] = item;
+        command += ` ${key} ${value}`;
+        if (ttl) command += ` ${ttl}`;
+      }
+    } else if (typeof pairs === 'object') {
+      // Format: { key1: value1, key2: value2, ... }
+      for (const [key, value] of Object.entries(pairs)) {
+        command += ` ${key} ${value}`;
+      }
+    } else {
+      throw new Error('pairs must be an object or array');
+    }
+
+    return await this.sendCommand(command);
+  }
+
+  /**
+   * MDEL - Delete multiple keys at once (batch operation)
+   * @param {string[]} keys - Array of keys to delete
+   * @returns {Promise<number>} - Number of keys deleted
+   */
+  async mdel(keys) {
+    if (!Array.isArray(keys) || keys.length === 0) {
+      throw new Error('keys must be a non-empty array');
+    }
+
+    const command = `MDEL ${keys.join(' ')}`;
+    return await this.sendCommand(command);
+  }
+
+  /**
+   * Pipeline - Execute multiple commands in sequence efficiently
+   * @param {Function} callback - Function that receives a pipeline object
+   * @returns {Promise<Array>} - Array of results
+   */
+  async pipeline(callback) {
+    const commands = [];
+    const pipeline = {
+      get: (key) => commands.push(`GET ${key}`),
+      set: (key, value, ttl) =>
+        commands.push(`PUSH ${key} ${value}${ttl ? ' ' + ttl : ''}`),
+      del: (key) => commands.push(`REMOVE ${key}`),
+      mget: (keys) => commands.push(`MGET ${keys.join(' ')}`),
+      mset: (pairs) => {
+        let cmd = 'MSET';
+        if (Array.isArray(pairs)) {
+          for (const [key, value, ttl] of pairs) {
+            cmd += ` ${key} ${value}`;
+            if (ttl) cmd += ` ${ttl}`;
+          }
+        } else {
+          for (const [key, value] of Object.entries(pairs)) {
+            cmd += ` ${key} ${value}`;
+          }
+        }
+        commands.push(cmd);
+      },
+      mdel: (keys) => commands.push(`MDEL ${keys.join(' ')}`),
+    };
+
+    // Execute callback to build pipeline
+    callback(pipeline);
+
+    // Execute all commands
+    const results = [];
+    for (const cmd of commands) {
+      results.push(await this.sendCommand(cmd));
+    }
+
+    return results;
   }
 
   /**
