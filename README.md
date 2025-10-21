@@ -1,5 +1,8 @@
 # MIRAY ✨
 
+<img width="231" height="224" alt="icon" src="https://github.com/user-attachments/assets/3bcd9716-2c42-47cf-b06c-199e9cfae8ce" />
+
+
 **M**emory **I**n-memory **R**apid **A**sync **Y**ield
 
 A high-performance, TCP-based in-memory key-value store built with Node.js. MIRAY provides production-grade storage with WAL (Write-Ahead Log), binary persistence, and automatic checkpointing.
