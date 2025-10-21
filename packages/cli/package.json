@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "miray": "./bin/miray"
+    "miray-cli": "./bin/miray-cli"
   },
   "scripts": {
     "start": "node src/index.js"
