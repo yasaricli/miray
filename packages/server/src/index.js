@@ -131,32 +131,4 @@ class MirayServer {
   }
 }
 
-// Parse command line arguments
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const options = {};
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--port' || args[i] === '-p') {
-      options.port = parseInt(args[i + 1], 10);
-      i++;
-    } else if (args[i] === '--host' || args[i] === '-h') {
-      options.host = args[i + 1];
-      i++;
-    }
-  }
-
-  return options;
-}
-
-// Start server if run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const options = parseArgs();
-  const server = new MirayServer(options);
-  server.start().catch((error) => {
-    console.error('[Server] Failed to start:', error);
-    process.exit(1);
-  });
-}
-
 export { MirayServer };

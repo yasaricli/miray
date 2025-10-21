@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
 import { MirayCLI } from '../src/index.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json');
 
 // Parse command line arguments
 function parseArgs() {
@@ -8,7 +12,10 @@ function parseArgs() {
   const options = {};
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--port' || args[i] === '-p') {
+    if (args[i] === '--version' || args[i] === '-v') {
+      console.log(pkg.version);
+      process.exit(0);
+    } else if (args[i] === '--port' || args[i] === '-p') {
       options.port = parseInt(args[i + 1], 10);
       i++;
     } else if (args[i] === '--host' || args[i] === '-h') {
