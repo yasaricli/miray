@@ -52,11 +52,11 @@ export class Protocol {
         case 'MGET':
           return this.handleMGet(parts);
 
-        case 'MSET':
-          return await this.handleMSet(parts);
+        case 'MPUSH':
+          return await this.handleMPush(parts);
 
-        case 'MDEL':
-          return await this.handleMDel(parts);
+        case 'MREMOVE':
+          return await this.handleMRemove(parts);
 
         default:
           return `-ERR unknown command '${command}'\n`;
@@ -264,13 +264,13 @@ export class Protocol {
   }
 
   /**
-   * MSET - Set multiple key-value pairs at once
-   * Usage: MSET key1 value1 [ttl1] key2 value2 [ttl2] ...
+   * MPUSH - Set multiple key-value pairs at once
+   * Usage: MPUSH key1 value1 [ttl1] key2 value2 [ttl2] ...
    * Returns OK
    */
-  async handleMSet(parts) {
+  async handleMPush(parts) {
     if (parts.length < 3) {
-      return '-ERR wrong number of arguments for MSET\n';
+      return '-ERR wrong number of arguments for MPUSH\n';
     }
 
     const args = parts.slice(1);
@@ -281,7 +281,7 @@ export class Protocol {
       const value = args[i + 1];
 
       if (!key || value === undefined) {
-        return '-ERR wrong number of arguments for MSET\n';
+        return '-ERR wrong number of arguments for MPUSH\n';
       }
 
       // Check if next arg is TTL (starts with number and ends with time unit)
@@ -300,13 +300,13 @@ export class Protocol {
   }
 
   /**
-   * MDEL - Delete multiple keys at once
-   * Usage: MDEL key1 key2 key3 ...
+   * MREMOVE - Delete multiple keys at once
+   * Usage: MREMOVE key1 key2 key3 ...
    * Returns number of keys deleted
    */
-  async handleMDel(parts) {
+  async handleMRemove(parts) {
     if (parts.length < 2) {
-      return '-ERR wrong number of arguments for MDEL\n';
+      return '-ERR wrong number of arguments for MREMOVE\n';
     }
 
     const keys = parts.slice(1);

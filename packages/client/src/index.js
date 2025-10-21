@@ -400,12 +400,12 @@ export class MirayClient extends EventEmitter {
   }
 
   /**
-   * MSET - Set multiple key-value pairs at once (batch operation)
+   * MPUSH - Set multiple key-value pairs at once (batch operation)
    * @param {Object} pairs - Object with key-value pairs, or array of [key, value, ttl?]
    * @returns {Promise<string>} - OK on success
    */
-  async mset(pairs) {
-    let command = 'MSET';
+  async mpush(pairs) {
+    let command = 'MPUSH';
 
     if (Array.isArray(pairs)) {
       // Format: [[key1, value1, ttl1], [key2, value2], ...]
@@ -427,16 +427,16 @@ export class MirayClient extends EventEmitter {
   }
 
   /**
-   * MDEL - Delete multiple keys at once (batch operation)
+   * MREMOVE - Delete multiple keys at once (batch operation)
    * @param {string[]} keys - Array of keys to delete
    * @returns {Promise<number>} - Number of keys deleted
    */
-  async mdel(keys) {
+  async mremove(keys) {
     if (!Array.isArray(keys) || keys.length === 0) {
       throw new Error('keys must be a non-empty array');
     }
 
-    const command = `MDEL ${keys.join(' ')}`;
+    const command = `MREMOVE ${keys.join(' ')}`;
     return await this.sendCommand(command);
   }
 
@@ -449,12 +449,12 @@ export class MirayClient extends EventEmitter {
     const commands = [];
     const pipeline = {
       get: (key) => commands.push(`GET ${key}`),
-      set: (key, value, ttl) =>
+      push: (key, value, ttl) =>
         commands.push(`PUSH ${key} ${value}${ttl ? ' ' + ttl : ''}`),
-      del: (key) => commands.push(`REMOVE ${key}`),
+      remove: (key) => commands.push(`REMOVE ${key}`),
       mget: (keys) => commands.push(`MGET ${keys.join(' ')}`),
-      mset: (pairs) => {
-        let cmd = 'MSET';
+      mpush: (pairs) => {
+        let cmd = 'MPUSH';
         if (Array.isArray(pairs)) {
           for (const [key, value, ttl] of pairs) {
             cmd += ` ${key} ${value}`;
@@ -467,7 +467,7 @@ export class MirayClient extends EventEmitter {
         }
         commands.push(cmd);
       },
-      mdel: (keys) => commands.push(`MDEL ${keys.join(' ')}`),
+      mremove: (keys) => commands.push(`MREMOVE ${keys.join(' ')}`),
     };
 
     // Execute callback to build pipeline
