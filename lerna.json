@@ -7,7 +7,7 @@
       "message": "chore(release): publish %s"
     },
     "version": {
-      "allowBranch": "main",
+      "allowBranch": ["main", "develop"],
       "conventionalCommits": true,
       "message": "chore(release): publish %s"
     }
