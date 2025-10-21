@@ -21,14 +21,33 @@ function parseArgs() {
     } else if (args[i] === '--host' || args[i] === '-h') {
       options.host = args[i + 1];
       i++;
+    } else if (args[i] === '--username' || args[i] === '-u') {
+      options.username = args[i + 1];
+      i++;
+    } else if (args[i] === '--password') {
+      options.password = args[i + 1];
+      i++;
     }
   }
 
   return options;
 }
 
+// Validate required auth parameters
+function validateAuth(options) {
+  if (options.username && !options.password) {
+    console.error('[Server] Error: --password is required when --username is provided');
+    process.exit(1);
+  }
+  if (options.password && !options.username) {
+    console.error('[Server] Error: --username is required when --password is provided');
+    process.exit(1);
+  }
+}
+
 // Start server
 const options = parseArgs();
+validateAuth(options);
 const server = new MirayServer(options);
 server.start().catch((error) => {
   console.error('[Server] Failed to start:', error);

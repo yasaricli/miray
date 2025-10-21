@@ -21,6 +21,12 @@ function parseArgs() {
     } else if (args[i] === '--host' || args[i] === '-h') {
       options.host = args[i + 1];
       i++;
+    } else if (args[i] === '--username' || args[i] === '-u') {
+      options.username = args[i + 1];
+      i++;
+    } else if (args[i] === '--password') {
+      options.password = args[i + 1];
+      i++;
     }
   }
 

@@ -10,8 +10,11 @@ export class MirayClient extends EventEmitter {
     super();
     this.host = options.host || 'localhost';
     this.port = options.port || config.server.port;
+    this.username = options.username;
+    this.password = options.password;
     this.socket = null;
     this.connected = false;
+    this.authenticated = false;
     this.commandQueue = [];
     this.buffer = '';
   }
@@ -19,15 +22,27 @@ export class MirayClient extends EventEmitter {
   /**
    * Connect to MIRAY server
    */
-  connect() {
+  async connect() {
     return new Promise((resolve, reject) => {
       this.socket = net.createConnection(
         { host: this.host, port: this.port },
-        () => {
+        async () => {
           this.connected = true;
           this.emit('connect');
           console.log(`[Client] Connected to ${this.host}:${this.port}`);
-          resolve();
+
+          // Authenticate if credentials provided
+          if (this.username && this.password) {
+            try {
+              await this.authenticate();
+              console.log('[Client] Authenticated successfully');
+              resolve();
+            } catch (error) {
+              reject(new Error(`Authentication failed: ${error.message}`));
+            }
+          } else {
+            resolve();
+          }
         }
       );
 
@@ -46,6 +61,33 @@ export class MirayClient extends EventEmitter {
         this.emit('error', error);
         reject(error);
       });
+    });
+  }
+
+  /**
+   * Authenticate with server
+   */
+  authenticate() {
+    return new Promise((resolve, reject) => {
+      // Send AUTH command
+      this.socket.write(`AUTH ${this.username} ${this.password}\n`);
+
+      // Set up one-time listener for auth response
+      const authHandler = (data) => {
+        const response = data.toString().trim();
+
+        if (response.startsWith('+OK')) {
+          this.authenticated = true;
+          this.socket.off('data', authHandler);
+          resolve();
+        } else if (response.startsWith('-ERR')) {
+          this.socket.off('data', authHandler);
+          reject(new Error(response.slice(5)));
+        }
+      };
+
+      // Temporarily use auth handler
+      this.socket.on('data', authHandler);
     });
   }
 

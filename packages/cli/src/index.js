@@ -9,10 +9,13 @@ class MirayCLI {
   constructor(options = {}) {
     this.host = options.host || 'localhost';
     this.port = options.port || config.server.port;
+    this.username = options.username;
+    this.password = options.password;
     this.socket = null;
     this.rl = null;
     this.buffer = '';
     this.waitingForResponse = false;
+    this.authenticated = false;
   }
 
   /**
@@ -24,6 +27,16 @@ class MirayCLI {
 
     try {
       await this.connect();
+
+      // Authenticate if credentials provided
+      if (this.username && this.password) {
+        const authSuccess = await this.authenticate();
+        if (!authSuccess) {
+          console.error('Authentication failed');
+          process.exit(1);
+        }
+      }
+
       this.startREPL();
     } catch (error) {
       console.error(`Failed to connect: ${error.message}`);
@@ -56,6 +69,37 @@ class MirayCLI {
       this.socket.on('error', (error) => {
         reject(error);
       });
+    });
+  }
+
+  /**
+   * Authenticate with server
+   */
+  authenticate() {
+    return new Promise((resolve) => {
+      console.log(`Authenticating as ${this.username}...`);
+
+      // Set up one-time listener for auth response
+      const authHandler = (data) => {
+        const response = data.toString().trim();
+
+        if (response.startsWith('+OK')) {
+          console.log('Authenticated!\n');
+          this.authenticated = true;
+          this.socket.off('data', authHandler);
+          resolve(true);
+        } else if (response.startsWith('-ERR')) {
+          console.error(`Authentication error: ${response.slice(5)}`);
+          this.socket.off('data', authHandler);
+          resolve(false);
+        }
+      };
+
+      // Temporarily use auth handler
+      this.socket.on('data', authHandler);
+
+      // Send AUTH command
+      this.socket.write(`AUTH ${this.username} ${this.password}\n`);
     });
   }
 
