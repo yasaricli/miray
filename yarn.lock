@@ -2812,23 +2812,23 @@ minizlib@^3.0.1, minizlib@^3.1.0:
     minipass "^7.1.2"
 
 "miray-cli@file:/Users/yasaricli/Desktop/PROJECTS/frontekip/plajify/project/miray/packages/cli":
-  version "1.0.0"
+  version "1.1.0"
   resolved "file:packages/cli"
   dependencies:
     miray-common "^1.0.0"
 
 "miray-client@file:/Users/yasaricli/Desktop/PROJECTS/frontekip/plajify/project/miray/packages/client":
-  version "1.0.0"
+  version "1.1.0"
   resolved "file:packages/client"
   dependencies:
     miray-common "^1.0.0"
 
-miray-common@^1.0.0, "miray-common@file:/Users/yasaricli/Desktop/PROJECTS/frontekip/plajify/project/miray/packages/common":
-  version "1.0.0"
+miray-common@^1.1.0, "miray-common@file:/Users/yasaricli/Desktop/PROJECTS/frontekip/plajify/project/miray/packages/common":
+  version "1.1.0"
   resolved "file:packages/common"
 
 "miray-server@file:/Users/yasaricli/Desktop/PROJECTS/frontekip/plajify/project/miray/packages/server":
-  version "1.0.0"
+  version "1.1.0"
   resolved "file:packages/server"
   dependencies:
     miray-common "^1.0.0"
