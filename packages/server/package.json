@@ -1,6 +1,6 @@
 {
   "name": "miray-server",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "MIRAY TCP Server - High-performance key-value store server",
   "type": "module",
   "main": "src/index.js",
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/yasaricli/miray/tree/main/packages/server#readme",
   "dependencies": {
-    "miray-common": "^1.3.0",
+    "miray-common": "^2.0.0",
     "msgpackr": "^1.11.2"
   },
   "publishConfig": {
