@@ -37,6 +37,7 @@ class MirayCLI {
         }
       }
 
+      console.log('Type "HELP" to see available commands\n');
       this.startREPL();
     } catch (error) {
       console.error(`Failed to connect: ${error.message}`);
@@ -242,6 +243,13 @@ class MirayCLI {
       if (trimmed.toLowerCase() === 'exit' || trimmed.toLowerCase() === 'quit') {
         this.socket.end();
         process.exit(0);
+        return;
+      }
+
+      // Handle help command (can be case-insensitive)
+      if (trimmed.toLowerCase() === 'help') {
+        this.waitingForResponse = true;
+        this.socket.write('HELP\n');
         return;
       }
 

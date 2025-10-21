@@ -58,6 +58,9 @@ export class Protocol {
         case 'MREMOVE':
           return await this.handleMRemove(parts);
 
+        case 'HELP':
+          return this.handleHelp();
+
         default:
           return `-ERR unknown command '${command}'\n`;
       }
@@ -211,7 +214,7 @@ export class Protocol {
   handleInfo() {
     const info = this.storage.getInfo();
     let response = '+';
-    response += `MIRAY Server v2 (WAL + Binary)\n`;
+    response += `MIRAY Server (WAL + Binary)\n`;
     response += `\n# Storage\n`;
     response += `keys: ${info.keys}\n`;
     response += `memory: ~${info.memory} bytes\n`;
@@ -318,5 +321,43 @@ export class Protocol {
     }
 
     return `:${deletedCount}\n`;
+  }
+
+  /**
+   * HELP - Show available commands
+   */
+  handleHelp() {
+    const commands = {
+      'Basic Commands': [
+        { cmd: 'PING', desc: 'Test server connection' },
+        { cmd: 'HELP', desc: 'Show this help message' },
+        { cmd: 'INFO', desc: 'Get server information and statistics' },
+      ],
+      'Data Operations': [
+        { cmd: 'PUSH key value [ttl]', desc: 'Store a value with optional TTL (e.g., 30s, 5m, 2h, 1d)' },
+        { cmd: 'GET key', desc: 'Retrieve a value by key' },
+        { cmd: 'REMOVE key', desc: 'Delete a key' },
+        { cmd: 'KEYS [pattern]', desc: 'List all keys matching pattern (default: *)' },
+        { cmd: 'TTL key', desc: 'Get time-to-live for a key in milliseconds' },
+        { cmd: 'FLUSH', desc: 'Delete all keys' },
+      ],
+      'Batch Operations': [
+        { cmd: 'MGET key1 key2 ...', desc: 'Get multiple values at once' },
+        { cmd: 'MPUSH key1 val1 [ttl1] ...', desc: 'Set multiple key-value pairs at once' },
+        { cmd: 'MREMOVE key1 key2 ...', desc: 'Delete multiple keys at once' },
+      ],
+      'CLI Commands': [
+        { cmd: 'exit, quit', desc: 'Disconnect from server' },
+      ],
+    };
+
+    const sections = Object.entries(commands).map(([title, cmds]) => {
+      const commandList = cmds
+        .map(({ cmd, desc }) => `  ${cmd.padEnd(30)} - ${desc}`)
+        .join('\n');
+      return `${title}:\n${commandList}`;
+    }).join('\n\n');
+
+    return `+MIRAY Commands:\n\n${sections}\n`;
   }
 }
