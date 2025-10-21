@@ -1,7 +1,7 @@
 {
   "name": "miray-monorepo",
   "version": "0.0.2",
-  "description": "MIRAY - Memory In-memory Real-time Async Yield - TCP-based key-value store",
+  "description": "MIRAY - Memory In-memory Rapid Async Yield - TCP-based key-value store",
   "private": true,
   "type": "module",
   "workspaces": [

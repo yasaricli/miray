@@ -22,7 +22,7 @@ class MirayCLI {
    * Start the CLI
    */
   async start() {
-    console.log('MIRAY CLI - Memory In-memory Real-time Async Yield');
+    console.log('MIRAY CLI - Memory In-memory Rapid Async Yield');
     console.log(`Connecting to ${this.host}:${this.port}...`);
 
     try {

@@ -1,6 +1,6 @@
 # MIRAY ✨
 
-**M**emory **I**n-memory **R**eal-time **A**sync **Y**ield
+**M**emory **I**n-memory **R**apid **A**sync **Y**ield
 
 A high-performance, TCP-based in-memory key-value store built with Node.js. MIRAY provides production-grade storage with WAL (Write-Ahead Log), binary persistence, and automatic checkpointing.
 
@@ -12,9 +12,9 @@ In modern application development, you often need a fast, temporary storage solu
 
 - **Session Management**: Store user sessions with automatic expiration
 - **Caching**: Speed up your applications by caching frequently accessed data
-- **Real-time Data**: Handle real-time data that doesn't need permanent storage
 - **Rate Limiting**: Track API usage with time-based limits
 - **Temporary State**: Store temporary application state across services
+- **Feature Flags**: Dynamic feature toggles with TTL support
 
 While Redis is a popular choice, MIRAY offers a **lightweight, Node.js-native alternative** that:
 
