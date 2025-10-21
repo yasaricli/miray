@@ -44,6 +44,32 @@ Install the client library in your project:
 npm install miray-client
 ```
 
+### Using Docker
+
+Run MIRAY server using Docker (pulls latest from npm):
+
+```bash
+# Pull the image
+docker pull yasaricli/miray-server
+
+# Run without authentication
+docker run -d --name miray-server -p 7779:7779 yasaricli/miray-server
+
+# Run with authentication
+docker run -d --name miray-server -p 7779:7779 -e USERNAME=admin -e PASSWORD=secret123 yasaricli/miray-server
+
+# Run with persistent data
+docker run -d --name miray-server -p 7779:7779  -v miray-data:/app/data yasaricli/miray-server
+```
+
+The Dockerfile:
+- Installs the latest `miray-server` from npm
+- Uses Alpine Linux for minimal size (~50MB)
+- Runs as non-root user for security
+- Supports environment variables: `PORT`, `HOST`, `USERNAME`, `PASSWORD`
+- Includes proper signal handling with dumb-init
+
+
 ## Quick Start
 
 ### 1. Start the Server
@@ -427,74 +453,6 @@ Tests with 10, 50, 100, 200, 500, 1000 concurrent connections.
 - Node.js 18+
 - npm or yarn
 
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/yasaricli/miray.git
-cd miray
-
-# Install dependencies
-npm install
-```
-
-### Development Commands
-
-#### Using Make (Recommended)
-
-```bash
-# Show all available commands
-make help
-
-# Install dependencies
-make install
-
-# Clean everything
-make clean          # Remove node_modules
-make clean-data     # Remove runtime data (*.wal, *.snapshot)
-make clean-all      # Clean everything
-
-# Development
-make server         # Start MIRAY server
-make server-dev     # Start with auto-reload
-make cli            # Start CLI
-
-# Benchmarks
-make benchmark                # Single connection benchmark
-make benchmark-concurrent     # Concurrent connections test
-
-# Testing & Building
-make test           # Run tests
-make build          # Build all packages
-
-# Publishing
-make version        # Version bump
-make publish        # Publish to npm
-```
-
-#### NPM Scripts
-
-```bash
-# Development
-npm run server                # Start server
-npm run server:dev           # Start server with auto-reload
-npm run cli                  # Start CLI
-
-# Benchmarks
-npm run benchmark            # Single connection
-npm run benchmark:concurrent # Concurrent test
-
-# Maintenance
-npm run clean                # Remove node_modules
-npm run clean:data          # Remove runtime data
-npm run build               # Build all packages
-npm run test                # Run tests
-
-# Publishing (Lerna)
-npm run version             # Bump version
-npm run publish             # Publish packages
-```
-
 ## Monorepo Structure
 
 This project uses Lerna for managing multiple packages:
@@ -507,6 +465,7 @@ miray/
 │   ├── miray-client      # Node.js SDK client
 │   └── miray-cli         # Interactive command-line interface
 ├── benchmarks/            # Performance benchmarks
+├── Dockerfile            # Docker image definition
 └── lerna.json            # Lerna configuration
 ```
 
