@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.1](https://github.com/yasaricli/miray/compare/v1.1.0...v2.0.1) (2025-10-21)
+
+
+### Code Refactoring
+
+* Rename batch commands for consistency ([55e6de4](https://github.com/yasaricli/miray/commit/55e6de4e2ab13e7d52a147f1eae25bb1ad00b9cd))
+
+
+### Features
+
+* Change default port from 6379 to 7779 ([c620b05](https://github.com/yasaricli/miray/commit/c620b0579ec38af931dc1fa68536473390d02d76))
+
+
+### BREAKING CHANGES
+
+* mset() and mdel() methods renamed to mpush() and mremove()
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+
+
+
+
+
 # [2.0.0](https://github.com/yasaricli/miray/compare/v1.1.0...v2.0.0) (2025-10-21)
 
 
