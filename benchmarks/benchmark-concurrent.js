@@ -29,7 +29,12 @@ class ConcurrentBenchmark {
     try {
       // Create and connect all clients
       for (let i = 0; i < connectionCount; i++) {
-        const client = new MirayClient({ host: 'localhost', port: 7779 });
+        const client = new MirayClient({
+          host: 'localhost',
+          port: 7779,
+          username: process.env.USERNAME || undefined,
+          password: process.env.PASSWORD || undefined
+        });
         clients.push(client);
       }
 

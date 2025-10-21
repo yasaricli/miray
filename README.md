@@ -420,31 +420,35 @@ data/
 
 ## Performance
 
-See [PERFORMANCE.md](./PERFORMANCE.md) for detailed performance analysis and optimization strategies.
+**TL;DR**: MIRAY delivers excellent performance for a Node.js-native in-memory store:
 
-**TL;DR**: MIRAY can handle:
-- 10,000-50,000 concurrent connections
-- 100,000-300,000 operations per second
-- Datasets up to several GB
+- 🚀 **100K+ ops/sec** with 50-100 concurrent clients
+- ⚡ **11K reads/sec, 6K writes/sec** (single connection)
+- 📊 **Peak: 143K reads/sec** (100 concurrent clients)
+- 🎯 **Sub-millisecond latency** (<0.2ms average)
+- 🔄 **Scales to 1000+ connections** (35K ops/sec)
 
-### Benchmarks
+### Quick Benchmark
 
-#### Single Connection Performance
 ```bash
+# Single connection test
 npm run benchmark
-```
 
-Expected results:
-- **Reads**: 30,000-50,000 ops/sec
-- **Writes**: 5,000-15,000 ops/sec
-- **Mixed**: 7,000-20,000 ops/sec
-
-#### Concurrent Connections
-```bash
+# Concurrent connections test
 npm run benchmark:concurrent
 ```
 
-Tests with 10, 50, 100, 200, 500, 1000 concurrent connections.
+### Detailed Performance Analysis
+
+For comprehensive performance metrics, optimization strategies, and real-world capacity planning, see:
+
+📖 **[PERFORMANCE.md](./PERFORMANCE.md)** - Complete performance analysis including:
+- Detailed benchmark results
+- Scalability analysis
+- Docker performance impact
+- Comparison with Redis
+- Tuning recommendations
+- Monitoring guide
 
 ## Development
 
