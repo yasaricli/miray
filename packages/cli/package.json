@@ -1,6 +1,6 @@
 {
   "name": "miray-cli",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "MIRAY CLI - Interactive command-line interface for MIRAY",
   "type": "module",
   "main": "src/index.js",
@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/yasaricli/miray/tree/main/packages/cli#readme",
   "dependencies": {
-    "miray-common": "^1.2.0"
+    "miray-common": "^1.3.0"
   },
   "publishConfig": {
     "access": "public"
