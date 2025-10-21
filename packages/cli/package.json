@@ -1,0 +1,35 @@
+{
+  "name": "miray-cli",
+  "version": "0.0.1",
+  "description": "MIRAY CLI - Interactive command-line interface for MIRAY",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miray": "./bin/miray"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "miray",
+    "cli",
+    "repl"
+  ],
+  "author": "Yasar Icli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasaricli/miray.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/yasaricli/miray/issues"
+  },
+  "homepage": "https://github.com/yasaricli/miray/tree/main/packages/cli#readme",
+  "dependencies": {
+    "miray-common": "^0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

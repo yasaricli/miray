@@ -1,0 +1,13 @@
+# Development
+*.test.js
+*.spec.js
+__tests__/
+
+# Documentation
+*.md
+!README.md
+
+# Config
+.eslintrc*
+.prettierrc*
+tsconfig.json

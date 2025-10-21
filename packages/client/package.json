@@ -1,0 +1,36 @@
+{
+  "name": "miray-client",
+  "version": "0.0.1",
+  "description": "MIRAY Client SDK - Node.js client library for MIRAY server",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "miray",
+    "client",
+    "sdk",
+    "tcp"
+  ],
+  "author": "Yasar Icli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasaricli/miray.git",
+    "directory": "packages/client"
+  },
+  "bugs": {
+    "url": "https://github.com/yasaricli/miray/issues"
+  },
+  "homepage": "https://github.com/yasaricli/miray/tree/main/packages/client#readme",
+  "dependencies": {
+    "miray-common": "^0.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

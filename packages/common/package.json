@@ -1,0 +1,33 @@
+{
+  "name": "miray-common",
+  "version": "0.0.1",
+  "description": "MIRAY common utilities and configuration",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./config": "./src/config.js"
+  },
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "miray",
+    "common",
+    "config"
+  ],
+  "author": "Yasar Icli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasaricli/miray.git",
+    "directory": "packages/common"
+  },
+  "bugs": {
+    "url": "https://github.com/yasaricli/miray/issues"
+  },
+  "homepage": "https://github.com/yasaricli/miray/tree/main/packages/common#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}

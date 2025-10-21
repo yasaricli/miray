@@ -1,0 +1,254 @@
+import readline from 'readline';
+import net from 'net';
+import { config } from '../config.js';
+
+/**
+ * MIRAY Interactive CLI
+ */
+class MirayCLI {
+  constructor(options = {}) {
+    this.host = options.host || 'localhost';
+    this.port = options.port || config.server.port;
+    this.socket = null;
+    this.rl = null;
+    this.buffer = '';
+    this.waitingForResponse = false;
+  }
+
+  /**
+   * Start the CLI
+   */
+  async start() {
+    console.log('MIRAY CLI - Memory In-memory Real-time Async Yield');
+    console.log(`Connecting to ${this.host}:${this.port}...`);
+
+    try {
+      await this.connect();
+      this.startREPL();
+    } catch (error) {
+      console.error(`Failed to connect: ${error.message}`);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Connect to MIRAY server
+   */
+  connect() {
+    return new Promise((resolve, reject) => {
+      this.socket = net.createConnection(
+        { host: this.host, port: this.port },
+        () => {
+          console.log('Connected!\n');
+          resolve();
+        }
+      );
+
+      this.socket.on('data', (data) => {
+        this.handleData(data);
+      });
+
+      this.socket.on('end', () => {
+        console.log('\nDisconnected from server');
+        process.exit(0);
+      });
+
+      this.socket.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Handle incoming data from server
+   */
+  handleData(data) {
+    this.buffer += data.toString();
+
+    // For array responses, we need to collect the entire response
+    if (this.buffer.startsWith('*')) {
+      const lines = this.buffer.split('\n');
+      const firstLine = lines[0];
+
+      if (firstLine.startsWith('*')) {
+        const count = parseInt(firstLine.slice(1), 10);
+
+        // If count is 0, we have the complete response
+        if (count === 0) {
+          this.displayResponse(this.buffer.trim());
+          this.buffer = '';
+          this.waitingForResponse = false;
+          this.prompt();
+          return;
+        }
+
+        // Check if we have all items (need count lines + header line)
+        if (lines.length >= count + 1) {
+          // Find the last non-empty line
+          let lastItemIndex = count;
+          while (lastItemIndex > 0 && !lines[lastItemIndex].trim()) {
+            lastItemIndex--;
+          }
+
+          if (lastItemIndex >= count || lines[count]) {
+            const response = lines.slice(0, count + 1).join('\n');
+            this.displayResponse(response);
+            this.buffer = '';
+            this.waitingForResponse = false;
+            this.prompt();
+            return;
+          }
+        }
+      }
+      return; // Wait for more data
+    }
+
+    // Process single-line responses
+    let newlineIndex;
+    while ((newlineIndex = this.buffer.indexOf('\n')) !== -1) {
+      const line = this.buffer.slice(0, newlineIndex);
+      this.buffer = this.buffer.slice(newlineIndex + 1);
+
+      if (line) {
+        this.displayResponse(line);
+        this.waitingForResponse = false;
+        this.prompt();
+      }
+    }
+  }
+
+  /**
+   * Display server response
+   */
+  displayResponse(response) {
+    if (!response) return;
+
+    const firstChar = response[0];
+
+    // Simple string response (+OK, +PONG)
+    if (firstChar === '+') {
+      console.log(response.slice(1));
+      return;
+    }
+
+    // Error response
+    if (firstChar === '-') {
+      console.log(response); // Print the full error
+      return;
+    }
+
+    // Integer response
+    if (firstChar === ':') {
+      console.log(response.slice(1));
+      return;
+    }
+
+    // Bulk string response
+    if (firstChar === '$') {
+      const value = response.slice(1);
+      if (value === '-1') {
+        console.log('(nil)');
+      } else {
+        console.log(value);
+      }
+      return;
+    }
+
+    // Array response
+    if (firstChar === '*') {
+      const lines = response.split('\n');
+      const count = parseInt(lines[0].slice(1), 10);
+
+      if (count === 0) {
+        console.log('(empty array)');
+        return;
+      }
+
+      for (let i = 1; i <= count && i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line) {
+          console.log(line);
+        }
+      }
+      return;
+    }
+
+    console.log(response);
+  }
+
+  /**
+   * Start REPL (Read-Eval-Print Loop)
+   */
+  startREPL() {
+    this.rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: '> ',
+    });
+
+    this.rl.on('line', (line) => {
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        this.prompt();
+        return;
+      }
+
+      // Handle exit commands
+      if (trimmed.toLowerCase() === 'exit' || trimmed.toLowerCase() === 'quit') {
+        this.socket.end();
+        process.exit(0);
+        return;
+      }
+
+      // Send command to server
+      this.waitingForResponse = true;
+      this.socket.write(trimmed + '\n');
+    });
+
+    this.rl.on('close', () => {
+      console.log('\nGoodbye!');
+      this.socket.end();
+      process.exit(0);
+    });
+
+    // Show initial prompt
+    this.prompt();
+  }
+
+  /**
+   * Show prompt
+   */
+  prompt() {
+    if (this.rl && !this.waitingForResponse) {
+      this.rl.prompt();
+    }
+  }
+}
+
+// Parse command line arguments
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const options = {};
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--port' || args[i] === '-p') {
+      options.port = parseInt(args[i + 1], 10);
+      i++;
+    } else if (args[i] === '--host' || args[i] === '-h') {
+      options.host = args[i + 1];
+      i++;
+    }
+  }
+
+  return options;
+}
+
+// Start CLI if run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const options = parseArgs();
+  const cli = new MirayCLI(options);
+  cli.start();
+}
+
+export { MirayCLI };

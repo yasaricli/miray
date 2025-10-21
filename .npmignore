@@ -1,0 +1,69 @@
+# NPM'de yayınlanmaması gereken dosyalar
+
+# Source control
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+appveyor.yml
+
+# Development files
+src/
+*.md
+!README.md
+!LICENSE.md
+!CHANGELOG.md
+
+# Tests
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+.nyc_output/
+
+# Documentation
+docs/
+examples/
+benchmarks/
+CONTRIBUTING.md
+PERFORMANCE.md
+README-old.md
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Build configs
+tsconfig.json
+.eslintrc*
+.prettierrc*
+.editorconfig
+rollup.config.js
+webpack.config.js
+babel.config.js
+
+# Lerna
+lerna.json
+lerna-debug.log
+
+# Data files
+data/
+*.wal
+*.snapshot
+
+# Other
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+*.log
+tmp/
+temp/

@@ -1,0 +1,18 @@
+# Development
+*.test.js
+*.spec.js
+__tests__/
+
+# Documentation
+*.md
+!README.md
+
+# Config
+.eslintrc*
+.prettierrc*
+tsconfig.json
+
+# Data files (runtime data)
+data/
+*.wal
+*.snapshot

@@ -1,0 +1,46 @@
+{
+  "name": "miray-monorepo",
+  "version": "0.0.2",
+  "description": "MIRAY - Memory In-memory Real-time Async Yield - TCP-based key-value store",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules packages/*/node_modules",
+    "clean:data": "rm -rf data packages/*/data",
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "server": "npm run start --workspace=miray-server",
+    "server:dev": "npm run dev --workspace=miray-server",
+    "cli": "npm run start --workspace=miray-cli",
+    "benchmark": "node benchmarks/benchmark.js",
+    "benchmark:concurrent": "node benchmarks/benchmark-concurrent.js",
+    "publish": "lerna publish",
+    "version": "lerna version"
+  },
+  "keywords": [
+    "key-value",
+    "in-memory",
+    "storage",
+    "tcp",
+    "cache"
+  ],
+  "author": "Yasar Icli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasaricli/miray.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yasaricli/miray/issues"
+  },
+  "homepage": "https://github.com/yasaricli/miray#readme",
+  "dependencies": {
+    "msgpackr": "^1.11.2"
+  },
+  "devDependencies": {
+    "lerna": "^9.0.0"
+  }
+}

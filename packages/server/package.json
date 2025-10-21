@@ -1,0 +1,38 @@
+{
+  "name": "miray-server",
+  "version": "0.0.1",
+  "description": "MIRAY TCP Server - High-performance key-value store server",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "miray-server": "./bin/miray-server"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "miray",
+    "server",
+    "tcp",
+    "key-value"
+  ],
+  "author": "Yasar Icli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasaricli/miray.git",
+    "directory": "packages/server"
+  },
+  "bugs": {
+    "url": "https://github.com/yasaricli/miray/issues"
+  },
+  "homepage": "https://github.com/yasaricli/miray/tree/main/packages/server#readme",
+  "dependencies": {
+    "miray-common": "^0.0.1",
+    "msgpackr": "^1.11.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
