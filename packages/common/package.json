@@ -1,6 +1,6 @@
 {
   "name": "miray-common",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "MIRAY common utilities and configuration",
   "type": "module",
   "main": "src/index.js",
