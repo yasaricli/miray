@@ -13,7 +13,7 @@ npm install -g miray-cli
 After installation, you can run:
 
 ```bash
-miray
+miray-cli
 ```
 
 ### Local Install
@@ -25,7 +25,7 @@ npm install miray-cli
 Then run with:
 
 ```bash
-npx miray
+npx miray-cli
 ```
 
 ## Usage
@@ -34,20 +34,20 @@ npx miray
 
 ```bash
 # Default (localhost:7779)
-miray
+miray-cli
 
 # Custom host and port
-miray --host localhost --port 7779
+miray-cli --host localhost --port 7779
 
 # Short flags
-miray -h localhost -p 7779
+miray-cli -h localhost -p 7779
 ```
 
 ### Interactive Session
 
 ```bash
-$ miray
-MIRAY CLI - Memory In-memory Real-time Async Yield
+$ miray-cli
+MIRAY CLI - Memory In-memory Rapid Async Yield
 Connecting to localhost:7779...
 Connected!
 
@@ -186,7 +186,7 @@ To exit the CLI:
 - 🎨 Syntax highlighting for responses
 - ⌨️ Command history (use arrow keys)
 - 🔄 Auto-reconnect on connection loss
-- 📊 Real-time server statistics
+- 📊 Server statistics via INFO command
 
 ## Tips
 
