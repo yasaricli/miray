@@ -14,6 +14,8 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const keysPerPage = 50;
+  const [keyToDelete, setKeyToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     // Check if connected
@@ -72,26 +74,32 @@ export default function DashboardPage() {
     router.push('/');
   };
 
-  const handleDeleteKey = async (key) => {
-    if (!confirm(`Delete key "${key}"?`)) return;
+  const handleDeleteKey = async () => {
+    if (!keyToDelete) return;
 
+    setDeleting(true);
     try {
       const connInfo = JSON.parse(sessionStorage.getItem('miray_connection'));
       const response = await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...connInfo, key }),
+        body: JSON.stringify({ ...connInfo, key: keyToDelete }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        loadData(); // Reload data
+        // Close modal
+        setKeyToDelete(null);
+        // Reload data
+        loadData();
       } else {
-        alert('Failed to delete key: ' + data.error);
+        setError('Failed to delete key: ' + data.error);
       }
     } catch (err) {
-      alert('Error: ' + err.message);
+      setError('Error: ' + err.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -172,9 +180,12 @@ export default function DashboardPage() {
             Dashboard
           </span>
           <div className="d-flex align-items-center">
-            <span className="badge bg-success me-3">
+            <span className="badge bg-success me-2">
               Connected to {connectionInfo?.host}:{connectionInfo?.port}
             </span>
+            {stats?.version && (
+              <span className="badge bg-info me-3">v{stats.version}</span>
+            )}
             <button className="btn btn-outline-light btn-sm" onClick={handleDisconnect}>
               Disconnect
             </button>
@@ -375,7 +386,7 @@ export default function DashboardPage() {
                             <td className="text-end">
                               <button
                                 className="btn btn-sm btn-danger"
-                                onClick={() => handleDeleteKey(key)}
+                                onClick={() => setKeyToDelete(key)}
                               >
                                 Delete
                               </button>
@@ -452,6 +463,65 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {keyToDelete && (
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setKeyToDelete(null)}
+                  disabled={deleting}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to delete this key?</p>
+                <div className="alert alert-warning mb-0">
+                  <strong>Key:</strong> <code>{keyToDelete}</code>
+                  <br />
+                  <small>This action cannot be undone.</small>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setKeyToDelete(null)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteKey}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                      ></span>
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete Key'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

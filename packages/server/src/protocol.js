@@ -3,10 +3,29 @@
  * Text-based protocol where each command is newline-separated
  */
 
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Read version from package.json
+let version = '0.0.0';
+try {
+  const packageJson = JSON.parse(
+    readFileSync(join(__dirname, '../package.json'), 'utf-8')
+  );
+  version = packageJson.version;
+} catch (error) {
+  console.warn('[Protocol] Could not read version from package.json');
+}
+
 export class Protocol {
   constructor(storage, server = null) {
     this.storage = storage;
     this.server = server;
+    this.version = version;
   }
 
   /**
@@ -217,7 +236,7 @@ export class Protocol {
   handleInfo() {
     const info = this.storage.getInfo();
     let response = '+';
-    response += `MIRAY Server (WAL + Binary)\n`;
+    response += `MIRAY Server v${this.version}\n`;
     response += `\n# Storage\n`;
     response += `keys: ${info.keys}\n`;
     response += `memory: ~${info.memory} bytes\n`;
@@ -233,6 +252,7 @@ export class Protocol {
     // Server stats
     if (this.server) {
       response += `\n# Server\n`;
+      response += `version: ${this.version}\n`;
       response += `uptime: ${info.uptime}s\n`;
       response += `active_connections: ${this.server.stats.activeConnections}\n`;
       response += `total_connections: ${this.server.stats.totalConnections}\n`;
