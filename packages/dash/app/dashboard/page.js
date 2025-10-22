@@ -120,6 +120,24 @@ export default function DashboardPage() {
     setCurrentPage(1);
   };
 
+  // Format TTL in human-readable format
+  const formatTTL = (seconds) => {
+    if (seconds === -1) return 'No expiry';
+    if (seconds === -2) return 'Expired';
+    if (seconds < 0) return 'Invalid';
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+    return parts.join(' ');
+  };
+
   // Load metadata for visible keys
   useEffect(() => {
     const loadKeyMetadata = async () => {
@@ -374,7 +392,7 @@ export default function DashboardPage() {
                                   <span className="badge bg-danger">Expired</span>
                                 ) : (
                                   <span className="badge bg-warning text-dark">
-                                    {metadata.ttl}s
+                                    {formatTTL(metadata.ttl)}
                                   </span>
                                 )
                               ) : (

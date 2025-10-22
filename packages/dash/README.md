@@ -15,7 +15,7 @@ Web-based management dashboard for MIRAY in-memory key-value store.
 ## Installation
 
 ```bash
-cd packages/miray-dash
+cd packages/dash
 npm install
 ```
 

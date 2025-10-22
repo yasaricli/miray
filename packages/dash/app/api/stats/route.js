@@ -46,6 +46,12 @@ function parseInfo(infoString) {
       // Convert snake_case to camelCase
       const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 
+      // Keep version as string (e.g., "2.0.4")
+      if (camelKey === 'version') {
+        stats[camelKey] = value;
+        continue;
+      }
+
       // Try to parse as number (remove units like 'bytes' or 's')
       const cleanValue = value.replace(/[^0-9.-]/g, '');
       const numValue = parseFloat(cleanValue);
