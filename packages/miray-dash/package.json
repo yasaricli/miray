@@ -1,0 +1,23 @@
+{
+  "name": "miray-dash",
+  "version": "2.0.2",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "miray-client": "^2.0.2",
+    "next": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sass": "^1.70.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}

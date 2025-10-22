@@ -77,10 +77,18 @@ export class Storage {
    */
   async set(key, value, ttl = null) {
     const expiresAt = ttl ? Date.now() + ttl : null;
+    const now = Date.now();
+
+    // Get existing entry to preserve createdAt and reads
+    const existing = this.store.get(key);
 
     const entry = {
       value,
       expiresAt,
+      createdAt: existing?.createdAt || now,
+      lastAccessAt: now,
+      reads: existing?.reads || 0,
+      writes: (existing?.writes || 0) + 1,
     };
 
     // Update in-memory store immediately
@@ -113,6 +121,10 @@ export class Storage {
       // Note: We don't log deletion to WAL here (cleanup will handle it)
       return null;
     }
+
+    // Update metadata
+    entry.reads = (entry.reads || 0) + 1;
+    entry.lastAccessAt = Date.now();
 
     return entry.value;
   }

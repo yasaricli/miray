@@ -17,6 +17,7 @@ export class MirayClient extends EventEmitter {
     this.authenticated = false;
     this.commandQueue = [];
     this.buffer = '';
+    this.pendingTimeouts = new Set();
   }
 
   /**
@@ -321,10 +322,15 @@ export class MirayClient extends EventEmitter {
       this.socket.on('data', dataHandler);
 
       // Timeout after 5 seconds
-      setTimeout(() => {
-        this.socket.off('data', dataHandler);
+      const timeoutId = setTimeout(() => {
+        this.pendingTimeouts.delete(timeoutId);
+        if (this.socket) {
+          this.socket.off('data', dataHandler);
+        }
         reject(new Error('Command timeout'));
       }, 5000);
+
+      this.pendingTimeouts.add(timeoutId);
     });
   }
 
@@ -334,6 +340,25 @@ export class MirayClient extends EventEmitter {
   async ttl(key) {
     const command = `TTL ${key}`;
     return await this.sendCommand(command);
+  }
+
+  /**
+   * KEYINFO command - Get key metadata (reads, writes, TTL, timestamps)
+   */
+  async keyinfo(key) {
+    const command = `KEYINFO ${key}`;
+    const response = await this.sendCommand(command);
+
+    // Response is JSON string, parse it
+    if (response && typeof response === 'string') {
+      try {
+        return JSON.parse(response);
+      } catch {
+        return null;
+      }
+    }
+
+    return response;
   }
 
   /**
@@ -350,7 +375,61 @@ export class MirayClient extends EventEmitter {
    */
   async info() {
     const command = `INFO`;
-    return await this.sendCommand(command);
+
+    return new Promise((resolve, reject) => {
+      if (!this.connected) {
+        return reject(new Error('Not connected to server'));
+      }
+
+      this.socket.write(command + '\n');
+
+      let fullResponse = '';
+      let responseStarted = false;
+
+      const dataHandler = (data) => {
+        const chunk = data.toString();
+        fullResponse += chunk;
+
+        // INFO response starts with + and contains multiple lines
+        if (!responseStarted && chunk.startsWith('+')) {
+          responseStarted = true;
+        }
+
+        // Check if we have a complete response
+        // INFO response ends when we get a line that doesn't start with a letter or #
+        const lines = fullResponse.split('\n');
+
+        // We need at least 2 lines and the response should have started
+        if (responseStarted && lines.length >= 2) {
+          // Check if we have received all the info (last line should be empty or start next command)
+          const lastLine = lines[lines.length - 1];
+          const secondLastLine = lines[lines.length - 2];
+
+          // If we have an empty line or enough content, we're done
+          if (lastLine === '' || (lines.length > 10 && secondLastLine.trim() !== '')) {
+            this.socket.off('data', dataHandler);
+
+            // Remove the + prefix from first line and clean up
+            const cleaned = fullResponse.replace(/^\+/, '').trim();
+
+            return resolve(cleaned);
+          }
+        }
+      };
+
+      this.socket.on('data', dataHandler);
+
+      // Timeout after 5 seconds
+      const timeoutId = setTimeout(() => {
+        this.pendingTimeouts.delete(timeoutId);
+        if (this.socket) {
+          this.socket.off('data', dataHandler);
+        }
+        reject(new Error('INFO command timeout'));
+      }, 5000);
+
+      this.pendingTimeouts.add(timeoutId);
+    });
   }
 
   /**
@@ -486,6 +565,12 @@ export class MirayClient extends EventEmitter {
    * Disconnect from server
    */
   disconnect() {
+    // Clear all pending timeouts
+    for (const timeoutId of this.pendingTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.pendingTimeouts.clear();
+
     if (this.socket) {
       this.socket.end();
       this.socket = null;

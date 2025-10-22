@@ -61,6 +61,9 @@ export class Protocol {
         case 'HELP':
           return this.handleHelp();
 
+        case 'KEYINFO':
+          return this.handleKeyInfo(parts);
+
         default:
           return `-ERR unknown command '${command}'\n`;
       }
@@ -339,6 +342,7 @@ export class Protocol {
         { cmd: 'REMOVE key', desc: 'Delete a key' },
         { cmd: 'KEYS [pattern]', desc: 'List all keys matching pattern (default: *)' },
         { cmd: 'TTL key', desc: 'Get time-to-live for a key in milliseconds' },
+        { cmd: 'KEYINFO key', desc: 'Get key metadata (reads, writes, TTL, timestamps)' },
         { cmd: 'FLUSH', desc: 'Delete all keys' },
       ],
       'Batch Operations': [
@@ -359,5 +363,46 @@ export class Protocol {
     }).join('\n\n');
 
     return `+MIRAY Commands:\n\n${sections}\n`;
+  }
+
+  /**
+   * KEYINFO - Get metadata about a specific key
+   * Returns: reads, writes, TTL, created, last accessed
+   */
+  handleKeyInfo(parts) {
+    if (parts.length < 2) {
+      return '-ERR wrong number of arguments for KEYINFO\n';
+    }
+
+    const key = parts[1];
+    const entry = this.storage.store.get(key);
+
+    if (!entry) {
+      return '$-1\n'; // Key not found
+    }
+
+    // Check if expired
+    if (entry.expiresAt && Date.now() >= entry.expiresAt) {
+      return '$-1\n';
+    }
+
+    // Calculate TTL
+    let ttl = -1;
+    if (entry.expiresAt) {
+      ttl = Math.floor((entry.expiresAt - Date.now()) / 1000);
+      if (ttl < 0) ttl = -2; // expired
+    }
+
+    // Build response with key metadata
+    const info = {
+      key,
+      reads: entry.reads || 0,
+      writes: entry.writes || 0,
+      ttl,
+      createdAt: entry.createdAt || null,
+      lastAccessAt: entry.lastAccessAt || null,
+    };
+
+    return `+${JSON.stringify(info)}\n`;
   }
 }
