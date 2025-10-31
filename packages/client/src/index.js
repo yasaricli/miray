@@ -18,6 +18,89 @@ export class MirayClient extends EventEmitter {
     this.commandQueue = [];
     this.buffer = '';
     this.pendingTimeouts = new Set();
+
+    // Event handler callbacks
+    this._onConnect = null;
+    this._onError = null;
+    this._onDisconnect = null;
+
+    // Auto-connect when client is created
+    this._autoConnect();
+  }
+
+  /**
+   * Set connect event handler
+   */
+  onConnect(callback) {
+    this._onConnect = callback;
+    return this;
+  }
+
+  /**
+   * Set error event handler
+   */
+  onError(callback) {
+    this._onError = callback;
+    return this;
+  }
+
+  /**
+   * Set disconnect event handler
+   */
+  onDisconnect(callback) {
+    this._onDisconnect = callback;
+    return this;
+  }
+
+  /**
+   * Check if client is ready (connected and optionally authenticated)
+   */
+  isReady() {
+    if (this.username && this.password) {
+      return this.connected && this.authenticated;
+    }
+    return this.connected;
+  }
+
+  /**
+   * Wait for client to be ready
+   */
+  waitForReady(timeout = 5000) {
+    return new Promise((resolve, reject) => {
+      if (this.isReady()) {
+        return resolve();
+      }
+
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Client ready timeout'));
+      }, timeout);
+
+      const checkReady = () => {
+        if (this.isReady()) {
+          clearTimeout(timeoutId);
+          resolve();
+        } else {
+          setTimeout(checkReady, 50);
+        }
+      };
+
+      checkReady();
+    });
+  }
+
+  /**
+   * Internal auto-connect method
+   */
+  async _autoConnect() {
+    try {
+      await this.connect();
+    } catch (error) {
+      if (this._onError) {
+        this._onError(error);
+      } else {
+        console.error('[MirayClient] Connection failed:', error.message);
+      }
+    }
   }
 
   /**
@@ -36,18 +119,32 @@ export class MirayClient extends EventEmitter {
 
           this.connected = true;
           this.emit('connect');
-          console.log(`[Client] Connected to ${this.host}:${this.port}`);
 
           // Authenticate if credentials provided
           if (this.username && this.password) {
             try {
               await this.authenticate();
               console.log('[Client] Authenticated successfully');
+
+              // Call onConnect callback after successful authentication
+              if (this._onConnect) {
+                this._onConnect();
+              }
               resolve();
             } catch (error) {
-              reject(new Error(`Authentication failed: ${error.message}`));
+              const authError = new Error(`Authentication failed: ${error.message}`);
+              if (this._onError) {
+                this._onError(authError);
+              }
+              reject(authError);
             }
           } else {
+            console.log(`[Client] Connected to ${this.host}:${this.port}`);
+
+            // Call onConnect callback for non-authenticated connections
+            if (this._onConnect) {
+              this._onConnect();
+            }
             resolve();
           }
         }
@@ -61,11 +158,21 @@ export class MirayClient extends EventEmitter {
         this.connected = false;
         this.emit('disconnect');
         console.log('[Client] Disconnected from server');
+
+        // Call onDisconnect callback
+        if (this._onDisconnect) {
+          this._onDisconnect();
+        }
       });
 
       this.socket.on('error', (error) => {
         this.connected = false;
         this.emit('error', error);
+
+        // Call onError callback
+        if (this._onError) {
+          this._onError(error);
+        }
         reject(error);
       });
     });
@@ -197,12 +304,11 @@ export class MirayClient extends EventEmitter {
   /**
    * Send command to server
    */
-  sendCommand(command) {
-    return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        return reject(new Error('Not connected to server'));
-      }
+  async sendCommand(command) {
+    // Auto-wait for client to be ready
+    await this.waitForReady();
 
+    return new Promise((resolve, reject) => {
       this.commandQueue.push({ resolve, reject });
       this.socket.write(command + '\n');
     });
@@ -269,12 +375,12 @@ export class MirayClient extends EventEmitter {
    * KEYS command - Get all keys matching pattern
    */
   async keys(pattern = '*') {
+    // Auto-wait for client to be ready
+    await this.waitForReady();
+
     const command = `KEYS ${pattern}`;
 
     return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        return reject(new Error('Not connected to server'));
-      }
 
       this.socket.write(command + '\n');
 
@@ -374,12 +480,12 @@ export class MirayClient extends EventEmitter {
    * INFO command - Get server information
    */
   async info() {
+    // Auto-wait for client to be ready
+    await this.waitForReady();
+
     const command = `INFO`;
 
     return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        return reject(new Error('Not connected to server'));
-      }
 
       this.socket.write(command + '\n');
 
@@ -442,10 +548,10 @@ export class MirayClient extends EventEmitter {
       throw new Error('keys must be a non-empty array');
     }
 
+    // Auto-wait for client to be ready
+    await this.waitForReady();
+
     return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        return reject(new Error('Not connected to server'));
-      }
 
       const command = `MGET ${keys.join(' ')}`;
 

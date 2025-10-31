@@ -8,7 +8,7 @@
     "miray-cli": "./bin/miray-cli"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node bin/miray-cli"
   },
   "keywords": [
     "miray",

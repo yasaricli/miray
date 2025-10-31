@@ -11,25 +11,27 @@ npm install miray-client
 ## Quick Start
 
 ```javascript
-import MirayClient from 'miray-client';
+import { MirayClient } from 'miray-client';
 
 const client = new MirayClient({
   host: 'localhost',
   port: 7779
 });
 
-// Connect to server
-await client.connect();
-
-// Store data
+// Auto-connects on creation
 await client.push('user:123', { name: 'John', age: 30 }, '5m');
 
 // Retrieve data
 const user = await client.get('user:123');
 console.log(user); // { name: 'John', age: 30 }
 
-// Disconnect
-await client.disconnect();
+// Optional: event handlers for connection status
+client
+  .onConnect(() => console.log('Connected!'))
+  .onError((error) => console.log('Error:', error.message));
+
+// Disconnect when done
+client.disconnect();
 ```
 
 ## API Reference
@@ -43,15 +45,61 @@ new MirayClient(options)
 **Options:**
 - `host` (string): Server host (default: `'localhost'`)
 - `port` (number): Server port (default: `7779`)
+- `username` (string, optional): Authentication username
+- `password` (string, optional): Authentication password
 
-### Methods
+**Returns:** MirayClient instance that auto-connects
 
-#### `connect(): Promise<void>`
+### Event Handler Methods
 
-Connect to the MIRAY server.
+#### `onConnect(callback): MirayClient`
+
+Set connection success handler (chainable).
 
 ```javascript
-await client.connect();
+client.onConnect(() => {
+  console.log('Connected and ready!');
+});
+```
+
+#### `onError(callback): MirayClient`
+
+Set error handler (chainable).
+
+```javascript
+client.onError((error) => {
+  console.error('Error:', error.message);
+});
+```
+
+#### `onDisconnect(callback): MirayClient`
+
+Set disconnect handler (chainable).
+
+```javascript
+client.onDisconnect(() => {
+  console.log('Connection lost');
+});
+```
+
+### Utility Methods
+
+#### `isReady(): boolean`
+
+Check if client is ready for operations.
+
+```javascript
+if (client.isReady()) {
+  // Ready to send commands
+}
+```
+
+#### `waitForReady(timeout?): Promise<void>`
+
+Wait for client to be ready (optional - commands auto-wait).
+
+```javascript
+await client.waitForReady(5000); // Wait max 5 seconds
 ```
 
 #### `disconnect(): void`
@@ -61,6 +109,8 @@ Disconnect from the server.
 ```javascript
 client.disconnect();
 ```
+
+### Data Commands
 
 #### `ping(): Promise<boolean>`
 
@@ -156,15 +206,14 @@ console.log(info);
 ### Session Management
 
 ```javascript
-import MirayClient from 'miray-client';
+import { MirayClient } from 'miray-client';
 
 class SessionManager {
   constructor() {
-    this.client = new MirayClient();
-  }
-
-  async init() {
-    await this.client.connect();
+    // Auto-connects on creation
+    this.client = new MirayClient()
+      .onConnect(() => console.log('📡 Session manager ready'))
+      .onError((error) => console.error('❌ Connection error:', error.message));
   }
 
   async createSession(sessionId, userData) {
@@ -179,31 +228,27 @@ class SessionManager {
     return await this.client.remove(`session:${sessionId}`);
   }
 
-  async cleanup() {
-    await this.client.disconnect();
+  cleanup() {
+    this.client.disconnect();
   }
 }
 
-// Usage
+// Usage - much simpler!
 const manager = new SessionManager();
-await manager.init();
 await manager.createSession('abc123', { userId: 1, email: 'user@example.com' });
 const session = await manager.getSession('abc123');
-await manager.cleanup();
+manager.cleanup();
 ```
 
 ### Caching
 
 ```javascript
-import MirayClient from 'miray-client';
+import { MirayClient } from 'miray-client';
 
 class Cache {
   constructor() {
+    // Auto-connects - no init() needed!
     this.client = new MirayClient();
-  }
-
-  async init() {
-    await this.client.connect();
   }
 
   async set(key, value, ttl = '5m') {
@@ -233,11 +278,10 @@ class Cache {
   }
 }
 
-// Usage
+// Usage - instant, no setup!
 const cache = new Cache();
-await cache.init();
 
-// Cache expensive operation
+// Cache expensive operation immediately
 const data = await cache.getOrSet('api:users', async () => {
   return await fetch('/api/users').then(r => r.json());
 }, '10m');
@@ -246,19 +290,22 @@ const data = await cache.getOrSet('api:users', async () => {
 ### Connection Pool
 
 ```javascript
-import MirayClient from 'miray-client';
+import { MirayClient } from 'miray-client';
 
 class ConnectionPool {
   constructor(size = 10) {
     this.size = size;
     this.pool = [];
     this.available = [];
+
+    // Auto-create pool
+    this.init();
   }
 
   async init() {
     for (let i = 0; i < this.size; i++) {
+      // Auto-connects on creation
       const client = new MirayClient();
-      await client.connect();
       this.pool.push(client);
       this.available.push(client);
     }
@@ -276,7 +323,7 @@ class ConnectionPool {
     this.available.push(client);
   }
 
-  async shutdown() {
+  shutdown() {
     for (const client of this.pool) {
       client.disconnect();
     }
@@ -305,15 +352,15 @@ client.on('error', (error) => {
 ## Error Handling
 
 ```javascript
+const client = new MirayClient()
+  .onError((error) => {
+    console.error('Connection error:', error);
+  });
+
 try {
-  await client.connect();
   await client.push('key', 'value');
 } catch (error) {
-  if (error.message.includes('Not connected')) {
-    console.error('Connection lost');
-  } else {
-    console.error('Operation failed:', error);
-  }
+  console.error('Operation failed:', error);
 }
 ```
 

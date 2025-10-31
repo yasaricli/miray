@@ -8,8 +8,8 @@
     "miray-server": "./bin/miray-server"
   },
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "start": "node bin/miray-server",
+    "dev": "node --watch bin/miray-server"
   },
   "keywords": [
     "miray",
